@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
+#include <math.h>
 
 
 void start (int szer, int wys, float *M, float C, float waga) {
@@ -17,16 +19,16 @@ void step () {
     // procedury start) zawiera nowy stan.
 }
 
-void read_matrix(float* matrix, int columns, int rows) {
-    for(int r = 0; r < rows; r++) {
+void read_matrix(FILE *fp, float *matrix, int columns, int rows) {
+    for (int r = 0; r < rows; r++) {
         for (int c = 0; c < columns; c++) {
-            scanf("%f", &matrix[r * columns + c]); // tutaj poprawka na numerowanie wierszy od gory/dolu s
+            fscanf(fp, "%f", &matrix[r * columns + c]); // tutaj poprawka na numerowanie wierszy od gory/dolu s
         }
     }
 }
 
-void print_matrix(float* matrix, int columns, int rows) {
-    for(int r = 0; r < rows; r++) {
+void print_matrix(float *matrix, int columns, int rows) {
+    for (int r = 0; r < rows; r++) {
         for (int c = 0; c < columns; c++) {
             printf("%f ", matrix[r * columns + c]); // tutaj poprawka na numerowanie wierszy od gory/dolu s
         }
@@ -34,28 +36,40 @@ void print_matrix(float* matrix, int columns, int rows) {
     }
 }
 
-int main() {
+int main(int argc, char *argv[]) {
+    assert(argc == 4);
+
+    FILE *fp = fopen(argv[1], "r");
+    float coeff = strtof(argv[2], NULL);
+    long steps = strtol(argv[3], NULL, 10);
+
     int columns, rows;
     float cooler_temperature;
-    scanf("%d %d %f", &columns, &rows, &cooler_temperature);
-
-    printf("%d %d %f\n", columns, rows, cooler_temperature); // TODO REMOVE
-
-    float* matrix = malloc(sizeof(float) * (columns * rows));
-
-    read_matrix(matrix, columns, rows);
-
-    print_matrix(matrix, columns, rows);  // TODO remove
+    fscanf(fp, "%d", &columns);
+    fscanf(fp, "%d", &rows);
+    fscanf(fp, "%f", &cooler_temperature);
+    float *matrix = malloc(sizeof(float) * (columns * rows) * 2);
+    read_matrix(fp, matrix, columns, rows);
 
     int number_of_heaters;
-    scanf("%d", &number_of_heaters);
-
+    fscanf(fp, "%d", &number_of_heaters);
     int *x_heaters = malloc(sizeof(int) * number_of_heaters);
     int *y_heaters = malloc(sizeof(int) * number_of_heaters);
     float *temp_heaters = malloc(sizeof(float) * number_of_heaters);
-
     for (int i = 0; i < number_of_heaters; i++) {
-        scanf("%d %d %f", &x_heaters[i], &y_heaters[i], &temp_heaters[i]);
+        fscanf(fp, "%d %d %f", &x_heaters[i], &y_heaters[i], &temp_heaters[i]);
+    }
+
+    fclose(fp);
+
+    start(columns, rows, matrix, cooler_temperature, coeff);
+    place(number_of_heaters, x_heaters, y_heaters, temp_heaters);
+
+    for (int i = 0; i <= steps; i++) {
+        printf("Liczba wykonanych krokow: %d\nStan macierzy:\n", i);
+        print_matrix(matrix, columns, rows);
+        printf("\n");
+        step();
     }
 
     free(x_heaters);
