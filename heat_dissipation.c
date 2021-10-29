@@ -22,7 +22,7 @@ void step () {
 void read_matrix(FILE *fp, float *matrix, int columns, int rows) {
     for (int r = 0; r < rows; r++) {
         for (int c = 0; c < columns; c++) {
-            fscanf(fp, "%f", &matrix[r * columns + c]); // tutaj poprawka na numerowanie wierszy od gory/dolu s
+            fscanf(fp, "%f", &matrix[r * columns + c]);
         }
     }
 }
@@ -30,7 +30,7 @@ void read_matrix(FILE *fp, float *matrix, int columns, int rows) {
 void print_matrix(float *matrix, int columns, int rows) {
     for (int r = 0; r < rows; r++) {
         for (int c = 0; c < columns; c++) {
-            printf("%f ", matrix[r * columns + c]); // tutaj poprawka na numerowanie wierszy od gory/dolu s
+            printf("%f ", matrix[r * columns + c]);
         }
         printf("\n");
     }
@@ -70,6 +70,14 @@ int main(int argc, char *argv[]) {
         print_matrix(matrix, columns, rows);
         printf("\n");
         step();
+
+        if (i < steps) {
+            printf("Nacisnij ENTER aby kontynuowac\n");
+            char c;
+            do {
+                c = getchar();
+            } while (c != '\n');
+        }
     }
 
     free(x_heaters);
