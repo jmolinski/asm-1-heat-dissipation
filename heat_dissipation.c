@@ -3,20 +3,76 @@
 #include <assert.h>
 #include <math.h>
 
+float *temp_matrix, *diff_matrix;
+int width, height;
+float coolant_temp, coeff;
 
-void start (int szer, int wys, float *M, float C, float waga) {
-    // Przygotowuje symulację, np. inicjuje pomocnicze struktury.
-    // Argumentami są: rozmiary matrycy, początkowa zawartość matrycy (temperatury komórek),
-    // temperatura chłodnic oraz wspólczynnik proporcjonalności.
+
+void start(int szer, int wys, float *M, float C, float waga) {
+    temp_matrix = M;
+    diff_matrix = &M[szer * wys];
+    width = szer;
+    height = wys;
+    coolant_temp = C;
+    coeff = waga;
+
+    for (int i = 0; i < width * height; i++) {
+        diff_matrix[i] = 0;
+    }
 }
 
-void place (int ile, int x[], int y[], float temp[]) {
-    // Umieszcza grzejniki w podanych miejscach i ustala ich temperatury.
+void place(int ile, int x[], int y[], float temp[]) {
+    for (int i = 0; i < ile; i++) {
+        int c = x[i];
+        int r = y[i];
+
+        temp_matrix[r * width + c] = temp[i];
+        float a = nanf("1");
+        diff_matrix[r * width + c] = a;
+    }
 }
 
-void step () {
-    // Przeprowadza pojedynczy krok symulacji. Po jej wykonaniu macierz M (przekazana przez parametr
-    // procedury start) zawiera nowy stan.
+float get_cell_temp(int r, int c) {
+    if (r < 0 || c < 0 || r >= height || c >= width) {
+        return coolant_temp;
+    }
+
+    return temp_matrix[r * width + c];
+}
+
+void calculate_diff_for_field(int r, int c) {
+    float cell = diff_matrix[r * width + c];
+    if (isnan(cell)) {
+        return;
+    }
+
+    cell = temp_matrix[r * width + c];
+    float diff = 0;
+    diff += get_cell_temp(r - 1, c);
+    diff -= cell;
+    diff += get_cell_temp(r + 1, c);
+    diff -= cell;
+    diff += get_cell_temp(r, c - 1);
+    diff -= cell;
+    diff += get_cell_temp(r, c + 1);
+    diff -= cell;
+
+    diff = diff * coeff;
+    diff_matrix[r * width + c] = diff;
+}
+
+void step() {
+    for (int r = 0; r < height; r++) {
+        for (int c = 0; c < width; c++) {
+            calculate_diff_for_field(r, c);
+        }
+    }
+    for (int i = 0; i < width * height; i++) {
+        float cell_diff = diff_matrix[i];
+        if (!isnan(cell_diff)) {
+            temp_matrix[i] += cell_diff;
+        }
+    }
 }
 
 void read_matrix(FILE *fp, float *matrix, int columns, int rows) {
