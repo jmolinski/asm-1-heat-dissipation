@@ -51,8 +51,9 @@ int main(int argc, char *argv[]) {
 
   start(columns, rows, matrix, cooler_temperature, coeff);
 
-  place(number_of_heaters, x_heaters, y_heaters, temp_heaters);
-
+  if (number_of_heaters > 0) {
+    place(number_of_heaters, x_heaters, y_heaters, temp_heaters);
+  }
   free(x_heaters);
   free(y_heaters);
   free(temp_heaters);
